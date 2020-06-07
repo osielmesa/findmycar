@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect,useState } from 'react';
 import {SafeAreaView, ScrollView, Linking, PermissionsAndroid, Platform} from 'react-native';
 import { Container, Header, Left, Body, Right, Button, Icon, Title,Content, Card, CardItem, Text  } from 'native-base'
 import Geolocation from '@react-native-community/geolocation';
@@ -14,10 +14,6 @@ const getLocationData = async () => {
   if(location !== null) {
     return location
   }
-}
-
-const getCurrentlocation = () => {
-
 }
 
 const executeFunctionWithLocationAndPermissionVerification = (func) => {
@@ -132,17 +128,23 @@ const findCarAction = (currentLocation) => {
 }
 
 function Main() {
+
   //Equivalent to componentDidMount
-  useEffect(async () => {
-      await requestLocationPermission()
+  useEffect( () => {
+    requestLocationPermission().then(r => {
+      console.log('location permission requested')
+    }).catch(error =>{
+      console.log('Error requesting location permission: '+error)
+    })
   }, [])
+
   return(
     <SafeAreaView>
       <ScrollView contentInsetAdjustmentBehavior="automatic">
         <Container>
           <Header>
             <Left>
-              <Button transparent>
+              <Button transparent >
                 <Icon type={'MaterialCommunityIcons'} name='home' />
               </Button>
             </Left>
@@ -151,7 +153,7 @@ function Main() {
             </Body>
             <Right>
               <Button transparent>
-                <Icon type={'MaterialCommunityIcons'} name='menu' />
+                <Icon type={'MaterialCommunityIcons'} name='settings' onPress={() => {}} />
               </Button>
             </Right>
           </Header>
