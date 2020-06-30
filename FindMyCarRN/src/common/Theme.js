@@ -1,15 +1,32 @@
+import Color from 'react-native-material-color';
+import { DefaultTheme } from '@react-navigation/native';
+
 export const themeLight = {
   colors: {
-    primary:'blue',
-
+    primary:Color.DEEPORANGE[900],
+    secondary: Color.DEEPORANGE[900],
+    textColor: Color.BLACK,
+    backgroundColor: Color.GREY[50]
   }
 }
 
 export const themeDark = {
   colors: {
-    primary:'black',
-
+    primary:Color.DEEPORANGE[900],
+    secondary: Color.DEEPORANGE[900],
+    textColor: Color.WHITE,
+    backgroundColor: Color.GREY[900]
   }
+}
+
+export const appBarTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary:Color.DEEPORANGE[900],
+    card: Color.DEEPORANGE[900],
+    text: Color.WHITE
+  },
 }
 
 
