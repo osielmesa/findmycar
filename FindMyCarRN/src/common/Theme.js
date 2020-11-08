@@ -1,64 +1,47 @@
 import Color from 'react-native-material-color';
 import { DefaultTheme } from '@react-navigation/native';
+import { StyleSheet, Platform } from 'react-native';
 
-export const themeLight = {
+export const ElementsTheme = {
   colors: {
-    primary:Color.DEEPORANGE[900],
-    secondary: Color.DEEPORANGE[900],
+    primary:Color.BLUE[600],
+    secondary: Color.BLUE[600],
     textColor: Color.BLACK,
-    backgroundColor: Color.GREY[50]
+    backgroundColor: Color.GREY[50],
+    title: '#BDBDBD',
   }
 }
 
-export const themeDark = {
-  colors: {
-    primary:Color.DEEPORANGE[900],
-    secondary: Color.DEEPORANGE[900],
-    textColor: Color.WHITE,
-    backgroundColor: Color.GREY[900]
-  }
-}
-
-export const appBarTheme = {
+export const NavigatorTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary:Color.DEEPORANGE[900],
-    card: Color.DEEPORANGE[900],
-    text: Color.WHITE
+    primary:Color.BLUE[600],
+    card: Color.BLUE[600],
+    text: Color.WHITE,
+    title: '#BDBDBD',
   },
 }
 
-
-/*
-interface theme {
-  colors: {
-    primary;
-    secondary;
-    grey0;
-    grey1;
-    grey2;
-    grey3;
-    grey4;
-    grey5;
-    greyOutline;
-    searchBg;
-    success;
-    error;
-    warning;
-    divider;
-    platform: {
-      ios: {
-        primary;
-        secondary;
-        success;
-        error;
-        warning;
-      };
-      android: {
-        // Same as ios
-      };
-    };
-  };
+export const getHeaderStyle = () => {
+  let headerStyle = StyleSheet.create({
+    header:{
+      elevation: 10,
+    }
+  });
+  if(Platform.OS === 'ios'){
+    headerStyle = StyleSheet.create({
+      header:{
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.4,
+        shadowRadius: 7,
+        zIndex:2,
+      }
+    });
+  }
+  return headerStyle.header;
 }
-*/

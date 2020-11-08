@@ -1,0 +1,2 @@
+//Translation
+export const CHANGE_TRANSLATION = 'CHANGE_TRANSLATION'

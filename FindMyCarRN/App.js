@@ -17,7 +17,7 @@ import { ThemeProvider } from 'react-native-elements';
 import Store from './src/common/redux/Store'
 import Main from './src/modules/Main/Main'
 import Settings from './src/modules/Settings/Settings'
-import {themeLight, appBarTheme} from './src/common/Theme'
+import {ElementsTheme, NavigatorTheme} from './src/common/Theme'
 
 const Stack = createStackNavigator();
 
@@ -39,9 +39,9 @@ const App: () => React$Node = () => {
   }
 
   return (
-    <ThemeProvider theme={themeLight}>
+    <ThemeProvider theme={ElementsTheme}>
       <Provider store={Store}>
-        <NavigationContainer theme={appBarTheme}>
+        <NavigationContainer theme={NavigatorTheme} style={{backgroundColor:'red'}}>
           {createHomeStack()}
         </NavigationContainer>
       </Provider>

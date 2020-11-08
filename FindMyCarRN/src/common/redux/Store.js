@@ -2,10 +2,10 @@ import {createStore,combineReducers, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk'
 import {composeWithDevTools} from 'redux-devtools-extension';
 
-import CommonReducer from './CommonReducer'
+import TranslationReducer from '../../modules/Translation/TranslationReducer'
 
 const rootReducer = combineReducers({
-  common: CommonReducer
+  translation: TranslationReducer
 })
 
 const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(thunkMiddleware)))

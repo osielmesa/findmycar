@@ -14,7 +14,6 @@ const styles = StyleSheet.create({
 
 function CardHeader(props) {
   const {title, icon, onPress, containerStyle, titleStyle} = props
-  console.log(titleStyle)
   return (
     <TouchableWithoutFeedback onPress={onPress}>
       <View style={{...styles.cardTitlediv, ...containerStyle}}>

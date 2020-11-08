@@ -1,4 +1,4 @@
-package com.findmycar;
+package com.osiellima.findmycar;
 
 import com.facebook.react.ReactActivity;
 

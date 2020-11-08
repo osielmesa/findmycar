@@ -1,41 +1,61 @@
 import React, { useEffect, useLayoutEffect, useContext, } from 'react';
-import {SafeAreaView, ScrollView, Linking, PermissionsAndroid, Platform, StyleSheet, View} from 'react-native';
+import {SafeAreaView, ScrollView, Linking, PermissionsAndroid, Platform, StyleSheet, Image, Alert} from 'react-native';
 import {Card, Button, Icon, Text, ThemeContext, Divider} from 'react-native-elements';
 import Geolocation from '@react-native-community/geolocation';
 import {check,request, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import AsyncStorage from '@react-native-community/async-storage'
 import { useTheme } from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
 
+//Local
 import CardHeader from '../../common/components/CardHeader';
+import {loadSettingsFromLocalStorage} from '../LocalStorage/UserSettings';
+import {changeTranslation} from '../Translation/TranslationActions';
+import {loadLocationData, saveLocationData} from '../LocalStorage/Location';
+import {getHeaderStyle} from '../../common/Theme';
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  divider:{
+    marginBottom:20
+  },
+  description:{
+    marginTop:10
+  },
+  logo:{
+    width:200,
+    height:200,
+    alignSelf:'center',
+    marginTop:30,
+    marginBottom:30
+  }
+})
 
 function Main(props) {
+  const dispatch = useDispatch()
+  const { translation } = useSelector(state => state.translation)
   const {navigation} = props
   const { theme } = useContext(ThemeContext);
   const { colors } = useTheme();
+  const logo = require('../../resources/playstore.png')
 
-  const storeLocationData = async (locationInfoObject) => {
-    await AsyncStorage.setItem('@LAST_LOCATION', JSON.stringify(locationInfoObject));
-  };
-
-  const getLocationData = async () => {
-    const location = await AsyncStorage.getItem('@LAST_LOCATION')
-    if(location !== null) {
-      return location
-    }
+  const loadSavedLanguage = () => {
+    loadSettingsFromLocalStorage().then(loadedSettings => {
+      if(loadedSettings && loadedSettings.language){
+        dispatch(changeTranslation(loadedSettings.language))
+      }
+    }).catch(error => {
+      console.log('Error loading settings', error);
+    })
   }
 
-  const executeFunctionWithLocationAndPermissionVerification = (func) => {
+  const executeFunctionWithLocationAndPermissionVerification = (funcCallback) => {
     if(Platform.OS === 'android'){
       requestLocationPermission().then(res =>{
         if (res === true){
           Geolocation.getCurrentPosition(info => {
-            console.log(info)
-            func(info)
+            funcCallback(info)
           });
         }else{
-          alert("Enable location permission for this app in settings!")
+          alert(translation.ENABLE_LOCATION)
         }
       })
     }else{
@@ -43,26 +63,50 @@ function Main(props) {
         .then(result => {
           switch (result) {
             case RESULTS.UNAVAILABLE:
-              alert("Enable location permission for this app in settings!")
+              checkLocationPermissionOnlyWhenInUse(funcCallback);
               break;
             case RESULTS.DENIED:
-              alert("Enable location permission for this app in settings!")
+              checkLocationPermissionOnlyWhenInUse(funcCallback);
               break;
             case RESULTS.GRANTED:
               Geolocation.getCurrentPosition(info => {
-                console.log(info)
-                func(info)
+                funcCallback(info)
               });
               break;
             case RESULTS.BLOCKED:
-              alert("Enable location permission for this app in settings!")
+              checkLocationPermissionOnlyWhenInUse(funcCallback);
               break;
           }
         })
         .catch(error => {
-          alert("Enable location permission for this app in settings!")
+          alert(translation.ENABLE_LOCATION)
         });
     }
+  }
+
+  const checkLocationPermissionOnlyWhenInUse = (funcCallback) => {
+    check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE)
+      .then(result => {
+        switch (result) {
+          case RESULTS.UNAVAILABLE:
+            alert(translation.ENABLE_LOCATION)
+            break;
+          case RESULTS.DENIED:
+            alert(translation.ENABLE_LOCATION)
+            break;
+          case RESULTS.GRANTED:
+            Geolocation.getCurrentPosition(info => {
+              funcCallback(info)
+            });
+            break;
+          case RESULTS.BLOCKED:
+            alert(translation.ENABLE_LOCATION)
+            break;
+        }
+      })
+      .catch(error => {
+        alert(translation.ENABLE_LOCATION)
+      });
   }
 
   const requestLocationPermission = async () => {
@@ -72,7 +116,7 @@ function Main(props) {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
             'title': 'Find My Car',
-            'message': 'Find My Car app requires location permission in order to find your car!'
+            'message': translation.PERMISSION_REQUIRED_TITLE
           }
         )
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
@@ -105,32 +149,35 @@ function Main(props) {
     }
   }
 
-  const saveLocationAction = (location) => {
+  const saveLocation = (location) => {
     if(location){
-      storeLocationData(location).then(
-        alert("Location saved!")
+      saveLocationData(location).then(
+        alert(translation.LOCATION_SAVED)
       ).catch(error => {
-        alert("There was an error saving your location. "+error.message);
+        alert(translation.ERROR_SAVING + error.message);
       })
     }else{
-      executeFunctionWithLocationAndPermissionVerification(saveLocationAction)
+      executeFunctionWithLocationAndPermissionVerification(saveLocation)
     }
   }
 
   const findCarAction = (currentLocation) => {
     if(currentLocation){
-      getLocationData().then(locationString =>{
-        const savedLocation = JSON.parse(locationString);
+      loadLocationData().then(savedLocation =>{
         const url = 'https://www.google.com/maps/dir/?api=1&origin='+currentLocation.coords.latitude+','+currentLocation.coords.longitude+'&destination='+savedLocation.coords.latitude+','+savedLocation.coords.longitude+'&travelmode=walking'
         Linking.canOpenURL(url).then(supported => {
           if (supported) {
-            Linking.openURL(url);
+            Linking.openURL(url).then(res => {
+
+            }).catch(error => {
+              alert(translation.WEB_NAVIGATION_NOT_SUPPORTED)
+            })
           } else {
-            alert("Navego a webview with router")
+            alert(translation.WEB_NAVIGATION_NOT_SUPPORTED)
           }
         });
       }).catch(error => {
-        alert("You need to save location first in order to find your car after!")
+        alert(translation.SAVE_FIRST_LOAD_AFTER)
       })
     }else{
       executeFunctionWithLocationAndPermissionVerification(findCarAction)
@@ -139,6 +186,7 @@ function Main(props) {
 
   //Equivalent to componentDidMount
   useEffect(() => {
+    loadSavedLanguage()
     requestLocationPermission().then(res => {
       console.log(res)
     }).catch(error=>{
@@ -149,36 +197,64 @@ function Main(props) {
   //It runs immediately after the DOM has been updated, but before "painting" the changes.
   useLayoutEffect(() => {
     navigation.setOptions({
-      title:'Home',
+      title:translation.HOME,
       headerRight: () => (
         <Button type="clear" onPress={() => {onSettingTouched()}} icon={<Icon name='settings' color={colors.text} onPress={() => {onSettingTouched()}} />}/>
       ),
+      headerStyle: getHeaderStyle(),
     });
-  }, [navigation]);
+  }, [navigation, translation]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title:translation.HOME,
+    })
+  }, [translation])
 
   const onSettingTouched = () => {
     navigation.navigate('Settings')
   }
 
+  const saveLocationClickHandler = () => {
+    Alert.alert(
+      translation.ARE_YOU_SURE_SAVE,
+      translation.THIS_WILL_REPLACE_PREV_LOCATION,
+      [
+        {
+          text: translation.CANCEL,
+          onPress: () => {},
+          style: 'cancel'
+        },
+        {
+          text: translation.SAVE,
+          onPress: () => {
+            saveLocation()
+          }
+        }
+      ],
+      { cancelable: true }
+    );
+  }
 
   return(
     <SafeAreaView>
       <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <Card title={<CardHeader icon={<Icon name="save" size={25} color={theme.colors.primary}/>} title={'Save location after parking'} onPress={() => saveLocationAction()}/> }
-              onPress={() => saveLocationAction()}
+        <Image source={logo} style={styles.logo} />
+        <Card title={<CardHeader icon={<Icon name="save" size={25} color={theme.colors.primary}/>} title={translation.SAVE_LOCATION_AFTER_PARKING} onPress={saveLocationClickHandler}/> }
+              onPress={saveLocationClickHandler}
         >
-          <Divider style={{ backgroundColor: theme.colors.primary, marginBottom:20 }} />
-          <Button title="SAVE MY LOCATION" color='white' onPress={() => saveLocationAction()}/>
-          <Text style={{marginTop:10}}>Let know to the app where you parked right now, so It will be remembered in the future!</Text>
+          <Divider style={{ ...styles.divider,backgroundColor: theme.colors.primary }} />
+          <Button title={translation.SAVE_MY_LOCATION} color='white' onPress={saveLocationClickHandler}/>
+          <Text style={styles.description}>{translation.SAVE_LOCATION_DESCRIPTION}</Text>
         </Card>
         <Card title={<CardHeader icon={<Icon type={'material-community'} name="map-marker" size={25} color={'white'}/>}
-                                 title={'Let´s find your car.'} onPress={() => findCarAction()}
+                                 title={translation.LETS_FIND_CAR} onPress={() => findCarAction()}
                                  titleStyle={{color:'white'}}/> }
               onPress={()=>findCarAction()} containerStyle={{backgroundColor:theme.colors.primary}}
         >
-          <Divider style={{ backgroundColor: 'white', marginBottom:20 }} />
-          <Button containerStyle={{backgroundColor:'white'}} type={'outline'} title="FIND MY CAR" onPress={() => findCarAction()}/>
-          <Text style={{marginTop:10, color:'white'}}>Find your car based on the last location saved!</Text>
+          <Divider style={{...styles.divider, backgroundColor: 'white' }} />
+          <Button containerStyle={{backgroundColor:'white'}} type={'outline'} title={translation.FIND_MY_CAR} onPress={() => findCarAction()}/>
+          <Text style={{...styles.description, color:'white'}}>{translation.FIND_CAR_DESCRIPTION}</Text>
         </Card>
       </ScrollView>
     </SafeAreaView>
