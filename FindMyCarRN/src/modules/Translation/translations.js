@@ -1,10 +1,11 @@
 export const translations = {
-  en:{
+  en: {
     LANG: 'en',
     LANGUAGE: 'Language',
     ENABLE_LOCATION: 'Please, enable location permission for this app in settings.',
-    PERMISSION_REQUIRED_TITLE: '"Find My Car" app requires location permission in order to find your car.',
+    PERMISSION_REQUIRED_TITLE: '"Find My Car" app requires location permission.',
     LOCATION_SAVED: 'Location saved.',
+    CAR_LOCATION_SAVED: 'Car location has been saved successfully!',
     ERROR_SAVING: 'There was an error saving your location. ',
     WEB_NAVIGATION_NOT_SUPPORTED: 'Error linking your location to the web.',
     SAVE_FIRST_LOAD_AFTER: 'You need to save car location first in order to find it after.',
@@ -26,8 +27,9 @@ export const translations = {
     LANG: 'es',
     LANGUAGE: 'Idioma',
     ENABLE_LOCATION: 'Por favor, habilita permiso de localización en configuración!',
-    PERMISSION_REQUIRED_TITLE: '"Find My Car" app requiere permiso de localización para poder localizar su auto.',
+    PERMISSION_REQUIRED_TITLE: '"Find My Car" app requiere permiso de localización.',
     LOCATION_SAVED: 'Localización guardada.',
+    CAR_LOCATION_SAVED: 'La localización del auto ha sido almacenada satisfactoriamente!',
     ERROR_SAVING: 'Ocurrió un error guardando la localización. ',
     WEB_NAVIGATION_NOT_SUPPORTED: 'Error enlazando su localización en la web.',
     SAVE_FIRST_LOAD_AFTER: 'Usted necesita guardar la localización del auto antes para encontrarlo después.',
@@ -45,12 +47,13 @@ export const translations = {
     CANCEL: 'Cancelar',
     SAVE: 'Guardar'
   },
-  sr:{
+  sr: {
     LANG: 'sr',
     LANGUAGE: 'Jezik',
     ENABLE_LOCATION: 'U podešavanjima omogućite dozvolu za lokaciju za ovu aplikaciju',
-    PERMISSION_REQUIRED_TITLE: 'aplikacija "Find My Car" zahteva dozvolu lokacije da bi pronašla vaš automobil.',
+    PERMISSION_REQUIRED_TITLE: 'aplikacija "Find My Car" zahteva dozvolu lokacije.',
     LOCATION_SAVED: 'Lokacija je sačuvana.',
+    CAR_LOCATION_SAVED: 'Lokacija automobila je uspešno sačuvana!',
     ERROR_SAVING: 'Došlo je do greške pri čuvanju vaše lokacije. ',
     WEB_NAVIGATION_NOT_SUPPORTED: 'Greška pri povezivanju vaše lokacije sa vebom.',
     SAVE_FIRST_LOAD_AFTER: 'Prvo morate sačuvati lokaciju automobila da biste je kasnije pronašli.',
@@ -60,11 +63,11 @@ export const translations = {
     SAVE_LOCATION_AFTER_PARKING: 'Sačuvajte lokaciju odmah nakon parkiranja',
     SAVE_MY_LOCATION: 'SAČUVAJTE LOKACIJU AUTOMOBILA',
     SAVE_LOCATION_DESCRIPTION: 'Obavestite aplikaciju gde ste trenutno parkirali, tako da će se pamtiti u budućnosti!',
-    LETS_FIND_CAR: 'Nađimo vaš auto',
+    LETS_FIND_CAR: 'Pronadjite vaš auto',
     FIND_MY_CAR: 'NAĐI MOJ AUTO',
     FIND_CAR_DESCRIPTION: 'Pronađite svoj automobil na osnovu poslednje sačuvane lokacije!',
     ARE_YOU_SURE_SAVE: 'Da li ste sigurni da želite da sačuvate trenutnu lokaciju?',
-    THIS_WILL_REPLACE_PREV_LOCATION: 'Ovo će zameniti prethodnu sačuvanu lokaciju',
+    THIS_WILL_REPLACE_PREV_LOCATION: 'Ovo će zameniti prethodno sačuvanu lokaciju',
     CANCEL: 'Poništiti',
     SAVE: 'Sačuvati'
   }

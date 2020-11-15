@@ -1,6 +1,8 @@
 package com.osiellima.findmycar;
 
 import com.facebook.react.ReactActivity;
+import org.devio.rn.splashscreen.SplashScreen; // Splash screen
+import android.os.Bundle; // Splash screen
 
 public class MainActivity extends ReactActivity {
 
@@ -11,5 +13,11 @@ public class MainActivity extends ReactActivity {
   @Override
   protected String getMainComponentName() {
     return "FindMyCar";
+  }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    SplashScreen.show(this);
+      super.onCreate(savedInstanceState);
   }
 }

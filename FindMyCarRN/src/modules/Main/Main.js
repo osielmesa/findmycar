@@ -1,8 +1,8 @@
 import React, { useEffect, useLayoutEffect, useContext, } from 'react';
-import {SafeAreaView, ScrollView, Linking, PermissionsAndroid, Platform, StyleSheet, Image, Alert} from 'react-native';
+import {SafeAreaView, ScrollView, Linking, Platform, StyleSheet, Image, Alert} from 'react-native';
 import {Card, Button, Icon, Text, ThemeContext, Divider} from 'react-native-elements';
 import Geolocation from '@react-native-community/geolocation';
-import {check,request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import { PERMISSIONS } from 'react-native-permissions';
 import { useTheme } from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,22 +12,9 @@ import {loadSettingsFromLocalStorage} from '../LocalStorage/UserSettings';
 import {changeTranslation} from '../Translation/TranslationActions';
 import {loadLocationData, saveLocationData} from '../LocalStorage/Location';
 import {getHeaderStyle} from '../../common/Theme';
-
-const styles = StyleSheet.create({
-  divider:{
-    marginBottom:20
-  },
-  description:{
-    marginTop:10
-  },
-  logo:{
-    width:200,
-    height:200,
-    alignSelf:'center',
-    marginTop:30,
-    marginBottom:30
-  }
-})
+import {
+  checkMultiplePermissions
+} from '../Permissions/Permissions';
 
 function Main(props) {
   const dispatch = useDispatch()
@@ -47,117 +34,24 @@ function Main(props) {
     })
   }
 
-  const executeFunctionWithLocationAndPermissionVerification = (funcCallback) => {
-    if(Platform.OS === 'android'){
-      requestLocationPermission().then(res =>{
-        if (res === true){
-          Geolocation.getCurrentPosition(info => {
-            funcCallback(info)
-          });
-        }else{
-          alert(translation.ENABLE_LOCATION)
-        }
-      })
-    }else{
-      check(PERMISSIONS.IOS.LOCATION_ALWAYS)
-        .then(result => {
-          switch (result) {
-            case RESULTS.UNAVAILABLE:
-              checkLocationPermissionOnlyWhenInUse(funcCallback);
-              break;
-            case RESULTS.DENIED:
-              checkLocationPermissionOnlyWhenInUse(funcCallback);
-              break;
-            case RESULTS.GRANTED:
-              Geolocation.getCurrentPosition(info => {
-                funcCallback(info)
-              });
-              break;
-            case RESULTS.BLOCKED:
-              checkLocationPermissionOnlyWhenInUse(funcCallback);
-              break;
-          }
-        })
-        .catch(error => {
-          alert(translation.ENABLE_LOCATION)
-        });
-    }
-  }
-
-  const checkLocationPermissionOnlyWhenInUse = (funcCallback) => {
-    check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE)
-      .then(result => {
-        switch (result) {
-          case RESULTS.UNAVAILABLE:
-            alert(translation.ENABLE_LOCATION)
-            break;
-          case RESULTS.DENIED:
-            alert(translation.ENABLE_LOCATION)
-            break;
-          case RESULTS.GRANTED:
-            Geolocation.getCurrentPosition(info => {
-              funcCallback(info)
-            });
-            break;
-          case RESULTS.BLOCKED:
-            alert(translation.ENABLE_LOCATION)
-            break;
-        }
-      })
-      .catch(error => {
-        alert(translation.ENABLE_LOCATION)
-      });
-  }
-
-  const requestLocationPermission = async () => {
-    if(Platform.OS === 'android'){
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            'title': 'Find My Car',
-            'message': translation.PERMISSION_REQUIRED_TITLE
-          }
-        )
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          return true;
-        } else {
-          console.log("location permission denied")
-          return false;
-        }
-      } catch (err) {
-        console.error(err)
-        return false
-      }
-    }else {
-      try {
-        const result = await request(PERMISSIONS.IOS.LOCATION_ALWAYS)
-        switch (result) {
-          case RESULTS.UNAVAILABLE:
-            return false
-          case RESULTS.DENIED:
-            return false
-          case RESULTS.GRANTED:
-            return true
-          case RESULTS.BLOCKED:
-            return false
-        }
-      }catch (err) {
-        console.error(err)
-        return false
-      }
-    }
-  }
-
   const saveLocation = (location) => {
     if(location){
       saveLocationData(location).then(
-        alert(translation.LOCATION_SAVED)
+        Alert.alert(translation.LOCATION_SAVED, translation.CAR_LOCATION_SAVED)
       ).catch(error => {
-        alert(translation.ERROR_SAVING + error.message);
+        Alert.alert(translation.ERROR_SAVING + error.message);
       })
     }else{
-      executeFunctionWithLocationAndPermissionVerification(saveLocation)
+      checkForPermissions().then(res => {
+        if(res){
+          Geolocation.getCurrentPosition(info => {
+            saveLocation(info)
+          });
+        }
+      }).catch(error => {
+        Alert.alert('An error has occurred checking for permissions!')
+        console.log(error)
+      })
     }
   }
 
@@ -170,26 +64,34 @@ function Main(props) {
             Linking.openURL(url).then(res => {
 
             }).catch(error => {
-              alert(translation.WEB_NAVIGATION_NOT_SUPPORTED)
+              Alert.alert(translation.WEB_NAVIGATION_NOT_SUPPORTED)
             })
           } else {
-            alert(translation.WEB_NAVIGATION_NOT_SUPPORTED)
+            Alert.alert(translation.WEB_NAVIGATION_NOT_SUPPORTED)
           }
         });
       }).catch(error => {
-        alert(translation.SAVE_FIRST_LOAD_AFTER)
+        Alert.alert(translation.SAVE_FIRST_LOAD_AFTER)
       })
     }else{
-      executeFunctionWithLocationAndPermissionVerification(findCarAction)
+      checkForPermissions().then(res => {
+        if(res){
+          Geolocation.getCurrentPosition(info => {
+            findCarAction(info)
+          });
+        }
+      }).catch(error => {
+        Alert.alert('An error has occurred checking for permissions!')
+        console.log(error)
+      })
     }
   }
 
   //Equivalent to componentDidMount
   useEffect(() => {
     loadSavedLanguage()
-    requestLocationPermission().then(res => {
-      console.log(res)
-    }).catch(error=>{
+    checkForPermissions().catch(error => {
+      Alert.alert('An error has occurred checking for permissions!')
       console.log(error)
     })
   }, [])
@@ -236,6 +138,37 @@ function Main(props) {
     );
   }
 
+  const checkForPermissions = async () => {
+    const permissions =
+      Platform.OS === 'ios'
+        ? [PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]
+        : [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
+
+    // Call our permission service and check for permissions
+    const isPermissionGranted = await checkMultiplePermissions(permissions);
+    if (!isPermissionGranted) {
+      // Show an alert in case permission was not granted
+      Alert.alert(
+        translation.PERMISSION_REQUIRED_TITLE,
+        translation.ENABLE_LOCATION,
+        [
+          {
+            text: 'Go to Settings',
+            onPress: () => {
+              Linking.openSettings();
+            },
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ],
+        { cancelable: false },
+      );
+    }
+    return isPermissionGranted;
+  }
+
   return(
     <SafeAreaView>
       <ScrollView contentInsetAdjustmentBehavior="automatic">
@@ -260,5 +193,21 @@ function Main(props) {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  divider:{
+    marginBottom:20
+  },
+  description:{
+    marginTop:10
+  },
+  logo:{
+    width:200,
+    height:200,
+    alignSelf:'center',
+    marginTop:30,
+    marginBottom:30
+  }
+})
 
 export default Main
